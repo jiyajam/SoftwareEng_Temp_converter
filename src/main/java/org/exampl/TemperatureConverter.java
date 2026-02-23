@@ -13,7 +13,7 @@ public class TemperatureConverter {
         return (celsius * 9 / 5) + 32;
     }
 
-    // Convert Kelvin to Celsius
+    // Convert KelvinS to Celsius
     public double kelvinToCelsius(double kelvin) {
         return kelvin - 273.15;
     }
