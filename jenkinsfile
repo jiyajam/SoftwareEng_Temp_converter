@@ -10,6 +10,8 @@ pipeline {
         DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'
         DOCKERHUB_REPO = 'jiyak/softwareeng_temp_converter'
         DOCKER_IMAGE_TAG = 'latest'
+        // Add macOS system binaries to PATH for sh steps
+        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${env.PATH}"
     }
 
     stages {
@@ -22,18 +24,13 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                // Prepend /usr/local/bin to PATH only for this stage
-                withEnv(["PATH=/usr/local/bin:${env.PATH}"]) {
-                    sh 'mvn clean verify'
-                }
+                sh 'mvn clean verify'
             }
         }
 
         stage('Code Coverage') {
             steps {
-                withEnv(["PATH=/usr/local/bin:${env.PATH}"]) {
-                    sh 'mvn jacoco:report'
-                }
+                sh 'mvn jacoco:report'
             }
         }
 
@@ -51,22 +48,21 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                withEnv(["PATH=/usr/local/bin:${env.PATH}"]) {
-                    script {
-                        docker.build("${env.DOCKERHUB_REPO}:${env.DOCKER_IMAGE_TAG}")
-                    }
-                }
+                sh 'docker build -t jiyak/softwareeng_temp_converter:latest .'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withEnv(["PATH=/usr/local/bin:${env.PATH}"]) {
-                    script {
-                        docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKERHUB_CREDENTIALS_ID}") {
-                            docker.image("${env.DOCKERHUB_REPO}:${env.DOCKER_IMAGE_TAG}").push()
-                        }
-                    }
+                withCredentials([usernamePassword(
+                    credentialsId: "${DOCKERHUB_CREDENTIALS_ID}",
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push jiyak/softwareeng_temp_converter:latest
+                    """
                 }
             }
         }
