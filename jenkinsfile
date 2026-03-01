@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven3'    // name of Maven installation in Jenkins
+        jdk 'Java21'      // name of Java installation in Jenkins
+    }
+
+    environment {
+        DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'      // Jenkins credential ID for Docker Hub
+        DOCKERHUB_REPO = 'jiyak/softwareeng_temp_converter'
+        DOCKER_IMAGE_TAG = 'latest'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/jiyajam/SoftwareEng_Temp_converter.git'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'mvn clean test'
+            }
+        }
+
+        stage('Code Coverage') {
+            steps {
+                sh 'mvn jacoco:report'
+            }
+        }
+
+        stage('Publish Test Results') {
+            steps {
+                junit '**/target/surefire-reports/*.xml'
+            }
+        }
+
+        stage('Publish Coverage Report') {
+            steps {
+                jacoco()
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("jiyak/softwareeng_temp_converter:latest")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS_ID) {
+                        docker.image("jiyak/softwareeng_temp_converter:latest").push()
+                    }
+                }
+            }
+        }
+
+    }
+}
