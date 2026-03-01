@@ -7,8 +7,8 @@ pipeline {
     }
 
     environment {
-        PATH = "/usr/local/bin:${env.PATH}"   // Add Docker to PATH
-        DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'  // Jenkins credential ID for Docker Hub
+        PATH+EXTRA = "/usr/local/bin"   // safer way to extend PATH in Jenkins
+        DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'
         DOCKERHUB_REPO = 'jiyak/softwareeng_temp_converter'
         DOCKER_IMAGE_TAG = 'latest'
     }
