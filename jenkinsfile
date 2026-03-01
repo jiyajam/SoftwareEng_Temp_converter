@@ -7,7 +7,8 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'      // Jenkins credential ID for Docker Hub
+        PATH = "/usr/local/bin:${env.PATH}"   // Add Docker to PATH
+        DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'  // Jenkins credential ID for Docker Hub
         DOCKERHUB_REPO = 'jiyak/softwareeng_temp_converter'
         DOCKER_IMAGE_TAG = 'latest'
     }
@@ -16,14 +17,12 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                // Explicitly checkout the main branch
                 git branch: 'main', url: 'https://github.com/jiyajam/SoftwareEng_Temp_converter.git'
             }
         }
 
         stage('Run Tests') {
             steps {
-                // Run tests and verify build
                 sh 'mvn clean verify'
             }
         }
